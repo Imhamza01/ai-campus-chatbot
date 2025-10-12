@@ -1,0 +1,12 @@
+[
+  { "question": "What is my course schedule?", "answer": "Open the Student Portal → My Courses to view your schedule." },
+  { "question": "How can I reset my campus password?", "answer": "Use the Password Reset link on the login page or contact IT at it-support@uni.edu." },
+  { "question": "When are the exams?", "answer": "Check the Academic Calendar on the Portal for exam dates." },
+  { "question": "How do I register for courses?", "answer": "Go to Registration → Add/Drop in the Portal during the registration period." },
+  { "question": "What are library hours?", "answer": "Library is open Mon–Sat, 8:00 AM – 8:00 PM." },
+  { "question": "How do I apply for scholarship?", "answer": "Visit Finance → Scholarships on the Portal and fill the application form." },
+  { "question": "Who is the dean of computer science?", "answer": "Prof. John Doe is the Dean of the Computer Science department." },
+  { "question": "How can I contact admissions?", "answer": "Email admissions@uni.edu or call +1-555-555-5555." },
+  { "question": "How to submit assignments on LMS?", "answer": "Open your course on LMS and use the Assignments section to upload files." },
+  { "question": "Is the cafeteria open today?", "answer": "Yes — Cafeteria hours are 8:00 AM to 7:00 PM on weekdays." }
+]
