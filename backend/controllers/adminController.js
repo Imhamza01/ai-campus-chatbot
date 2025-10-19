@@ -5,12 +5,16 @@ const { createNotification } = require("../utils/notifications");
 // GET all users (admin only)
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password");
+    const { role } = req.query;
+    const filter = {};
+    if (role) filter.role = role;
+    const users = await User.find(filter).select('-password');
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // GET a single user by ID (admin only)
 const getUserById = async (req, res) => {
@@ -105,6 +109,45 @@ const deleteUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ✏️ Update Admin Profile
+const updateProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
+
+    if (req.body.password) {
+      user.password = await bcrypt.hash(req.body.password, 10);
+    }
+
+    await user.save();
+
+    await createNotification(
+      user._id,
+      "Your profile was successfully updated."
+    );
+
+    res.json({
+      message: "Profile updated successfully",
+      user: { name: user.name, email: user.email, role: user.role },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 module.exports = {
   getAllUsers,
@@ -112,4 +155,6 @@ module.exports = {
   createUser,
   updateUser,
   deleteUser,
+  getProfile,
+  updateProfile
 };

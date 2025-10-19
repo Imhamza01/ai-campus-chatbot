@@ -10,7 +10,7 @@ const createTicket = async (req, res) => {
       return res.status(403).json({ message: 'Only students can create tickets.' });
     }
 
-    const { title, description, priority } = req.body;
+    const { title, description, priority, category } = req.body; // ✅ FIXED
 
     const ticket = await Ticket.create({
       title,
@@ -20,17 +20,20 @@ const createTicket = async (req, res) => {
       createdBy: req.user._id,
       status: 'open',
     });
-    
-    const admins = await User.find({ role: 'admin' });
-await Promise.all(
-  admins.map(admin => 
-    createNotification(admin._id, `New ticket "${ticket.title}" created by ${req.user.name}`, `/tickets/${ticket._id}`)
-  )
-);  
 
-    // Notify admins
+    const admins = await User.find({ role: 'admin' });
+
+    await Promise.all(
+      admins.map(admin =>
+        createNotification(
+          admin._id,
+          `New ticket "${ticket.title}" created by ${req.user.name}`,
+          `/tickets/${ticket._id}`
+        )
+      )
+    );
+
     try {
-      
       await Promise.all(
         admins.map(admin =>
           sendEmail({
@@ -44,7 +47,6 @@ await Promise.all(
       console.error('Failed to send admin emails:', err.message);
     }
 
-    // Optional: Notify student
     try {
       await sendEmail({
         to: req.user.email,
@@ -57,10 +59,10 @@ await Promise.all(
 
     res.status(201).json(ticket);
   } catch (error) {
+    console.error("Create ticket error:", error);
     res.status(500).json({ message: error.message });
   }
 };
-
 // Update priority (admin/faculty only)
 // Update ticket priority (admin/faculty)
 
@@ -97,21 +99,28 @@ const getTickets = async (req, res) => {
   try {
     let tickets;
 
-    // ✅ Admins and Faculty can see all tickets
-    if (req.user.role === 'admin' || req.user.role === 'faculty') {
+    if (req.user.role === 'admin') {
+      // Admin sees all tickets
       tickets = await Ticket.find()
         .populate('createdBy assignedTo', 'name email role');
-    }
-    // ✅ Students can only see their own
+    } 
+    else if (req.user.role === 'faculty') {
+      // Faculty sees only tickets assigned to them
+      tickets = await Ticket.find({ assignedTo: req.user._id })
+        .populate('createdBy assignedTo', 'name email role');
+    } 
     else if (req.user.role === 'student') {
+      // Student sees only their own tickets
       tickets = await Ticket.find({ createdBy: req.user._id })
         .populate('assignedTo', 'name email role');
-    } else {
+    } 
+    else {
       return res.status(403).json({ message: 'Invalid role.' });
     }
 
     res.json(tickets);
   } catch (error) {
+    console.error("getTickets error:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -207,5 +216,24 @@ const addComment = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+const deleteTicket = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Only admins can delete tickets." });
+    }
 
-module.exports = { createTicket, getTickets, assignTicket, updateTicketStatus, addComment,updatePriority };
+    const ticket = await Ticket.findById(req.params.id);
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket not found." });
+    }
+
+    await Ticket.findByIdAndDelete(req.params.id);
+
+    res.json({ message: "Ticket deleted successfully." });
+  } catch (error) {
+    console.error("Delete ticket error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { createTicket,deleteTicket, getTickets, assignTicket, updateTicketStatus, addComment,updatePriority };

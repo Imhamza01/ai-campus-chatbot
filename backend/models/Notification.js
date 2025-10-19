@@ -1,15 +1,23 @@
-// utils/notifications.js
-const Notification = require('../models/Notification');
+// models/Notification.js
+const mongoose = require("mongoose");
 
-const createNotification = async (userId, message, link = null) => {
-  try {
-    const notification = new Notification({ user: userId, message, link });
-    await notification.save();
-    console.log(`✅ Notification created for user: ${userId}`);
-    return notification;
-  } catch (error) {
-    console.error('❌ Error creating notification:', error.message);
-  }
-};
+const notificationSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
+    message: { type: String, required: true },
+    type: {
+      type: String,
+      enum: ["info", "warning", "alert"],
+      default: "info",
+    },
+    recipientRole: {
+      type: String,
+      enum: ["student", "faculty", "admin", "all"],
+      default: "all",
+    },
+    readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  },
+  { timestamps: true }
+);
 
-module.exports = { createNotification };
+module.exports = mongoose.model("Notification", notificationSchema);

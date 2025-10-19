@@ -6,7 +6,7 @@ const {
   assignTicket, 
   updateTicketStatus, 
   addComment,   // 🆕 Added here!
-  updatePriority
+  updatePriority,deleteTicket,
 } = require('../controllers/ticketController');
 const { protect, authorize } = require('../Middleware/authMiddleware');
 
@@ -26,6 +26,6 @@ router.put('/status/:id', protect, authorize('admin', 'faculty'), updateTicketSt
 router.post('/:id/comment', protect, addComment);
 
 router.put('/:id/priority', protect, updatePriority);
-
+router.delete('/:id', protect, authorize('admin'), deleteTicket); 
 
 module.exports = router;
