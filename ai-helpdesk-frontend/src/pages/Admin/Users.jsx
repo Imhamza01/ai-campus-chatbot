@@ -15,17 +15,20 @@ export default function AdminUsers() {
   const [error, setError] = useState(null);
 
   const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get("/api/admin/users");
-      setUsers(res.data || []);
-    } catch (err) {
-      console.error("Failed to load users:", err);
-      setError(err?.response?.data?.message || err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    const res = await api.get("/api/admin/users");
+    const sorted = (res.data || []).sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+    setUsers(sorted);
+  } catch (err) {
+    console.error("Failed to load users:", err);
+    setError(err?.response?.data?.message || err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchUsers();

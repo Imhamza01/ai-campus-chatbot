@@ -36,9 +36,9 @@ const createUser = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    if (!["student", "faculty"].includes(role)) {
+    if (!["student", "faculty", "admin"].includes(role)) {
       return res.status(400).json({ message: "Invalid role" });
-    }
+    } 
 
     const userExists = await User.findOne({ email });
     if (userExists)

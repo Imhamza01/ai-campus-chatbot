@@ -6,20 +6,26 @@ import api from "../../services/api";
 
 export default function StudentDashboard() {
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState(() => {
-    const saved = localStorage.getItem("studentQuickChat");
-    return saved ? JSON.parse(saved) : [];
-  });
   const [loading, setLoading] = useState(false);
   const [topFaqs, setTopFaqs] = useState([]);
   const chatEndRef = useRef(null);
   const [tempSessionId, setTempSessionId] = useState(null);
 
-  // 🌀 Scroll bottom + save chat
+  // 🧠 Identify current user from localStorage
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userKey = user ? `studentQuickChat_${user._id}` : "studentQuickChat_guest";
+
+  // 🗂️ Load user-specific chat history
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem(userKey);
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // 🌀 Scroll to bottom + save chat (per user)
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    localStorage.setItem("studentQuickChat", JSON.stringify(messages));
-  }, [messages]);
+    localStorage.setItem(userKey, JSON.stringify(messages));
+  }, [messages, userKey]);
 
   // 🧠 Load FAQs
   useEffect(() => {
@@ -40,7 +46,7 @@ export default function StudentDashboard() {
     })();
   }, []);
 
-  // 🧠 Ensure quick-chat session
+  // 🧠 Ensure chat session
   const ensureSession = async () => {
     if (tempSessionId) return tempSessionId;
     const res = await api.post("/api/chat/start", { title: "Quick Chat" });
@@ -48,7 +54,7 @@ export default function StudentDashboard() {
     return res.data._id;
   };
 
-  // 🚀 Send message
+  // 🚀 Send message to chatbot
   const sendToChatbot = async (inputMessage) => {
     const userMsg = inputMessage || message;
     if (!userMsg.trim()) return;
@@ -64,7 +70,8 @@ export default function StudentDashboard() {
         message: userMsg,
       });
 
-      const aiResponse = res.data.reply || res.data.response || "No response from AI.";
+      const aiResponse =
+        res.data.reply || res.data.response || "No response from AI.";
       setMessages((prev) => [...prev, { from: "ai", text: aiResponse }]);
     } catch (err) {
       console.error("Chat error:", err);
@@ -77,7 +84,7 @@ export default function StudentDashboard() {
     }
   };
 
-  // Typing dots animation
+  // 💬 Typing animation
   const TypingDots = () => (
     <div className="flex gap-1 mt-1">
       <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
@@ -104,9 +111,9 @@ export default function StudentDashboard() {
           </p>
         </div>
 
-        {/* Main Section */}
+        {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Chat */}
+          {/* Chat Area */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -144,7 +151,7 @@ export default function StudentDashboard() {
               <div ref={chatEndRef}></div>
             </div>
 
-            {/* Input */}
+            {/* Input Field */}
             <div className="mt-2 flex gap-2">
               <input
                 type="text"

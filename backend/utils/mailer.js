@@ -1,4 +1,5 @@
-// utils/mailer.js
+// backend/utils/mailer.js
+require('dotenv').config();
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
@@ -11,38 +12,25 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-async function sendEmail({ to, subject, html }) {
-  let attempts = 0;
-  while (attempts < 3) {
-    try {
-      const info = await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to,
-        subject,
-        html,
-      });
-      console.log('Email sent:', info.messageId);
-      return info;
-    } catch (err) {
-      attempts++;
-      console.error(`Email send failed (attempt ${attempts}):`, err.message);
-      if (attempts >= 3) throw err;
-      await new Promise(r => setTimeout(r, 3000)); // retry after 3 seconds
-    }
+// verify connection once at startup
+transporter.verify((err, success) => {
+  if (err) {
+    console.error("✉️ Email transporter verify failed:", err.message);
+  } else {
+    console.log("✉️ Email transporter ready");
   }
-}
-async function sendEmailWithRetry(options, retries = 3) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await sendEmail(options);
-    } catch (err) {
-      console.error(`Email send failed, attempt ${i + 1}:`, err.message);
-      await new Promise(res => setTimeout(res, 2000)); // 2 sec wait
-    }
-  }
-  console.error('All email attempts failed:', options);
+});
+
+async function sendEmail({ to, subject, html, text }) {
+  const info = await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to,
+    subject,
+    html,
+    text,
+  });
+  console.log('Email sent:', info.messageId);
+  return info;
 }
 
-
-
-module.exports = { sendEmail,sendEmailWithRetry };
+module.exports = { sendEmail };

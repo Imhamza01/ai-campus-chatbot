@@ -1,6 +1,9 @@
+const dotenv = require("dotenv");
+require('dotenv').config();
+console.log("🌍 .env loaded:", process.env.WIT_AI_TOKEN ? "✅ Yes" : "❌ No");
 const express = require("express");
 const cors = require("cors");
-const dotenv = require("dotenv");
+
 const connectDB = require("./config/db");
 const rateLimit = require("express-rate-limit");
 const { loadFaqIndex } = require("./utils/chatbot");
@@ -16,7 +19,7 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const profileRoutes = require("./routes/profileRoutes")
 
-dotenv.config();
+
 connectDB();
 
 // 🔄 Load Fuse FAQ index
